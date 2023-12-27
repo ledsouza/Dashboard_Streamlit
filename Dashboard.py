@@ -43,15 +43,20 @@ receita_categorias = (
     dados.groupby("Categoria do Produto")["Preço"].sum().sort_values(ascending=False)
 )
 
-### Quantidade de vendas
-vendas_estados = (
-    dados.groupby("Local da compra")
-    .count()
-    .reset_index()
-    .sort_values("Produto", ascending=False)
-)
+### Tabelas de Quantidade de vendas
+# vendas_estados = (
+#     dados.groupby("Local da compra")
+#     .count()
+#     .reset_index()
+#     .sort_values("Produto", ascending=False)
+# )
+# vendas_estados = (
+#     dados.drop_duplicates(subset="Local da compra")[["Local da compra", "lat", "lon"]]
+#     .merge(vendas_estados, left_on="Local da compra", right_index=True)
+#     .sort_values("Produto", ascending=False)
+# )
 
-### Vendedores
+### Tabelas de Vendedores
 vendedores = pd.DataFrame(dados.groupby("Vendedor")["Preço"].agg(["sum", "count"]))
 
 ## Gráficos
