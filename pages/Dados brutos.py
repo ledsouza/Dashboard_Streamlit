@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 import pandas as pd
 
+st.set_page_config(layout="wide")
+
 st.title('DADOS BRUTOS')
 
 url = 'https://labdados.com/produtos'
@@ -31,8 +33,26 @@ with st.sidebar.expander('Local da compra'):
 with st.sidebar.expander('Tipo de pagamento'):
     pagamento = st.multiselect('Selecione o tipo de pagamento', dados['Tipo de pagamento'].unique(), dados['Tipo de pagamento'].unique())
 with st.sidebar.expander('Quantidade de parcelas'):
-    parcelas = st.slider('Selecione a quantidade de parcelas', 1, 12, (1, 12))
+    parcelas = st.slider('Selecione a quantidade de parcelas', 1, 24, (1, 24))
 with st.sidebar.expander('Avaliação da compra'):
     avaliacao = st.slider('Selecione a avaliação', dados['Avaliação da compra'].min(), dados['Avaliação da compra'].max(), (dados['Avaliação da compra'].min(), dados['Avaliação da compra'].max()))
 
-st.dataframe(dados)
+query = '''
+Produto in @produtos and \
+`Categoria do Produto` in @categoria_produto and \
+@preco[0] <= Preço <= @preco[1] and \
+@frete[0] <= Frete <= @frete[1] and \
+@data_compra[0] <= `Data da Compra` <= @data_compra[1] and \
+Vendedor in @vendedor and \
+`Local da compra` in @local_compra and \
+`Tipo de pagamento` in @pagamento and \
+@parcelas[0] <= `Quantidade de parcelas` <= @parcelas[1] and \
+@avaliacao[0] <= `Avaliação da compra` <= @avaliacao[1]
+'''
+
+dados_filtrados = dados.query(query)
+dados_filtrados = dados_filtrados[colunas]
+
+st.dataframe(dados_filtrados)
+
+st.markdown(f'A tabela possui :blue[{dados_filtrados.shape[0]}] linhas e :blue[{dados_filtrados.shape[1]}] colunas')
