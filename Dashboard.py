@@ -35,7 +35,7 @@ response = requests.get(url, params= query_string)
 dados = pd.DataFrame.from_dict(response.json())
 dados["Data da Compra"] = pd.to_datetime(dados["Data da Compra"], format="%d/%m/%Y")
 
-filtro_vendedores = st.sidebar.multiselect('Vendedores', dados['Vendedor'].unique())
+filtro_vendedores = st.sidebar.multiselect('Vendedores', dados['Vendedor'].unique(), placeholder="Selecione uma opção")
 if filtro_vendedores:
     dados = dados[dados['Vendedor'].isin(filtro_vendedores)]
 
