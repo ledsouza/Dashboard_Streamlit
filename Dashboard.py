@@ -44,14 +44,29 @@ receita_categorias = (
 )
 
 ### Tabelas de Quantidade de vendas
-vendas_estados = (
-    dados.groupby("Local da compra")
-    .count()
-)
+vendas_estados = dados.groupby("Local da compra").count()[["Produto"]]
 vendas_estados = (
     dados.drop_duplicates(subset="Local da compra")[["Local da compra", "lat", "lon"]]
     .merge(vendas_estados, left_on="Local da compra", right_index=True)
     .sort_values("Produto", ascending=False)
+    .rename(columns={"Produto": "Quantidade de vendas"})
+)
+
+vendas_mensal = (
+    dados.set_index("Data da Compra")
+    .groupby(pd.Grouper(freq="M"))["Produto"]
+    .count()
+    .reset_index()
+    .rename(columns={"Produto": "Quantidade de vendas"})
+)
+vendas_mensal["Ano"] = vendas_mensal["Data da Compra"].dt.year
+vendas_mensal["Mês"] = vendas_mensal["Data da Compra"].dt.month_name()
+
+vendas_categorias = (
+    dados.groupby("Categoria do Produto")["Produto"]
+    .count()
+    .sort_values(ascending=False)
+    .rename('Quantidade de vendas')
 )
 
 ### Tabelas de Vendedores
@@ -99,27 +114,41 @@ fig_receita_categorias = px.bar(
 
 fig_receita_categorias.update_layout(yaxis_title="Receita")
 
-# fig_mapa_vendas = px.scatter_geo(
-#     vendas_estados,
-#     lat="lat",
-#     lon="lon",
-#     scope="south america",
-#     size="Produto",
-#     template="seaborn",
-#     hover_name="Local da compra",
-#     hover_data={"lat": False, "lon": False},
-#     title="Vendas por Estado",
-# )
+fig_mapa_vendas = px.scatter_geo(
+    vendas_estados,
+    lat="lat",
+    lon="lon",
+    scope="south america",
+    size="Quantidade de vendas",
+    template="seaborn",
+    hover_name="Local da compra",
+    hover_data={"lat": False, "lon": False},
+    title="Vendas por Estado",
+)
 
 fig_vendas_estados = px.bar(
     vendas_estados.head(),
     x="Local da compra",
-    y="Produto",
+    y="Quantidade de vendas",
     text_auto=True,
     title="Top estados",
 )
 
-fig_vendas_estados.update_layout(yaxis_title="Quantidade de vendas")
+fig_vendas_mensal = px.line(
+    vendas_mensal,
+    x="Mês",
+    y="Quantidade de vendas",
+    markers=True,
+    range_y=(0, vendas_mensal.max()),
+    color="Ano",
+    line_dash="Ano",
+    title="Vendas mensal",
+)
+
+fig_vendas_categorias = px.bar(
+    vendas_categorias, text_auto=True, title="Vendas por categoria"
+)
+fig_vendas_categorias.update_layout(yaxis_title="Quantidade de vendas")
 
 ## Visualização no streamlit
 aba1, aba2, aba3 = st.tabs(["Receita", "Quantidade de vendas", "Vendedores"])
@@ -141,12 +170,13 @@ with aba2:
     coluna1, coluna2 = st.columns(2)
     with coluna1:
         st.metric("Receita", formata_numero(dados["Preço"].sum(), "R$"))
-        st.write(vendas_estados)
-        #st.plotly_chart(fig_mapa_vendas, use_container_width=True)
+        st.plotly_chart(fig_mapa_vendas, use_container_width=True)
         st.plotly_chart(fig_vendas_estados, use_container_width=True)
 
     with coluna2:
         st.metric("Quantidade de vendas", formata_numero(dados.shape[0]))
+        st.plotly_chart(fig_vendas_mensal, use_container_width=True)
+        st.plotly_chart(fig_vendas_categorias, use_container_width=True)
 
 with aba3:
     qtd_vendedores = st.number_input("Quantidade de vendedores", 2, 10, 5)
@@ -165,7 +195,7 @@ with aba3:
             text_auto=True,
             title=f"Top {qtd_vendedores} vendedores (receita)",
         )
-        fig_receita_vendedores.update_layout(yaxis_title='')
+        fig_receita_vendedores.update_layout(yaxis_title="")
         st.plotly_chart(fig_receita_vendedores, use_container_width=True)
 
     with coluna2:
@@ -182,5 +212,5 @@ with aba3:
             text_auto=True,
             title=f"Top {qtd_vendedores} vendedores (quantidade de vendas)",
         )
-        fig_vendas_vendedores.update_layout(yaxis_title='')
+        fig_vendas_vendedores.update_layout(yaxis_title="")
         st.plotly_chart(fig_vendas_vendedores, use_container_width=True)
