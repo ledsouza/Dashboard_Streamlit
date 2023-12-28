@@ -112,7 +112,7 @@ fig_receita_categorias = px.bar(
     receita_categorias, text_auto=True, title="Receita por categoria"
 )
 
-fig_receita_categorias.update_layout(yaxis_title="Receita")
+fig_receita_categorias.update_layout(yaxis_title="Receita", showlegend=False)
 
 fig_mapa_vendas = px.scatter_geo(
     vendas_estados,
@@ -131,7 +131,7 @@ fig_vendas_estados = px.bar(
     x="Local da compra",
     y="Quantidade de vendas",
     text_auto=True,
-    title="Top estados",
+    title="Top estados"
 )
 
 fig_vendas_mensal = px.line(
@@ -148,7 +148,7 @@ fig_vendas_mensal = px.line(
 fig_vendas_categorias = px.bar(
     vendas_categorias, text_auto=True, title="Vendas por categoria"
 )
-fig_vendas_categorias.update_layout(yaxis_title="Quantidade de vendas")
+fig_vendas_categorias.update_layout(yaxis_title="Quantidade de vendas", showlegend=False)
 
 ## Visualização no streamlit
 aba1, aba2, aba3 = st.tabs(["Receita", "Quantidade de vendas", "Vendedores"])
