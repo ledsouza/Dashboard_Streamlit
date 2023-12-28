@@ -44,17 +44,15 @@ receita_categorias = (
 )
 
 ### Tabelas de Quantidade de vendas
-# vendas_estados = (
-#     dados.groupby("Local da compra")
-#     .count()
-#     .reset_index()
-#     .sort_values("Produto", ascending=False)
-# )
-# vendas_estados = (
-#     dados.drop_duplicates(subset="Local da compra")[["Local da compra", "lat", "lon"]]
-#     .merge(vendas_estados, left_on="Local da compra", right_index=True)
-#     .sort_values("Produto", ascending=False)
-# )
+vendas_estados = (
+    dados.groupby("Local da compra")
+    .count()
+)
+vendas_estados = (
+    dados.drop_duplicates(subset="Local da compra")[["Local da compra", "lat", "lon"]]
+    .merge(vendas_estados, left_on="Local da compra", right_index=True)
+    .sort_values("Produto", ascending=False)
+)
 
 ### Tabelas de Vendedores
 vendedores = pd.DataFrame(dados.groupby("Vendedor")["Preço"].agg(["sum", "count"]))
@@ -101,6 +99,18 @@ fig_receita_categorias = px.bar(
 
 fig_receita_categorias.update_layout(yaxis_title="Receita")
 
+# fig_mapa_vendas = px.scatter_geo(
+#     vendas_estados,
+#     lat="lat",
+#     lon="lon",
+#     scope="south america",
+#     size="Produto",
+#     template="seaborn",
+#     hover_name="Local da compra",
+#     hover_data={"lat": False, "lon": False},
+#     title="Vendas por Estado",
+# )
+
 fig_vendas_estados = px.bar(
     vendas_estados.head(),
     x="Local da compra",
@@ -131,6 +141,8 @@ with aba2:
     coluna1, coluna2 = st.columns(2)
     with coluna1:
         st.metric("Receita", formata_numero(dados["Preço"].sum(), "R$"))
+        st.write(vendas_estados)
+        #st.plotly_chart(fig_mapa_vendas, use_container_width=True)
         st.plotly_chart(fig_vendas_estados, use_container_width=True)
 
     with coluna2:
